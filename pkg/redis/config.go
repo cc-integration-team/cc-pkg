@@ -1,8 +1,8 @@
 package pkgredis
 
 type RedisConfig struct {
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
+	Host     string `json:"host" mapstructure:"host"`
+	Port     int    `json:"port" mapstructure:"port"`
+	Password string `json:"password" mapstructure:"password"`
+	DB       int    `json:"db" mapstructure:"db"`
 }
