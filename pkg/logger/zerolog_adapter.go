@@ -61,7 +61,12 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 		writers = append(writers, filteredConsoleWriter)
 	}
 
-	log := zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger()
+	var log zerolog.Logger
+	if cfg.CallerDebug {
+		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger()
+	} else {
+		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Logger()
+	}
 
 	return &zerologAdapter{log: &log}
 }

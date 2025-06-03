@@ -1,8 +1,9 @@
 package logger
 
 type LoggerConfig struct {
-	File    LoggerFileConfig    `mapstructure:"file"`
-	Console LoggerConsoleConfig `mapstructure:"console"`
+	CallerDebug bool                `mapstructure:"callerDebug"`
+	File        LoggerFileConfig    `mapstructure:"file"`
+	Console     LoggerConsoleConfig `mapstructure:"console"`
 }
 
 type LoggerFileConfig struct {
