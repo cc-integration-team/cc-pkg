@@ -55,7 +55,7 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 				TimeFormat: time.RFC3339,
 				NoColor:    true,
 				FormatLevel: func(i interface{}) string {
-					return strings.ToUpper(fmt.Sprintf("| %s |", i))
+					return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 				},
 			}
 		}
@@ -81,7 +81,7 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 				TimeFormat: time.RFC3339,
 				NoColor:    true,
 				FormatLevel: func(i interface{}) string {
-					return strings.ToUpper(fmt.Sprintf("| %s |", i))
+					return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 				},
 			}
 		}
