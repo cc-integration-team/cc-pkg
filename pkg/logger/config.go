@@ -14,9 +14,11 @@ type LoggerFileConfig struct {
 	MaxBackups int    `mapstructure:"maxBackups"`
 	MaxAge     int    `mapstructure:"maxAge"`
 	Compress   bool   `mapstructure:"compress"`
+	Pretty     bool   `mapstructure:"pretty"`
 }
 
 type LoggerConsoleConfig struct {
 	Level   string `mapstructure:"level"`
 	Enabled bool   `mapstructure:"enabled"`
+	Pretty  bool   `mapstructure:"pretty"`
 }

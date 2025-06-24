@@ -2,10 +2,12 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -45,7 +47,19 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 			Writer: zerolog.LevelWriterAdapter{Writer: fileWriter},
 			Level:  level,
 		}
-		writers = append(writers, filteredFileWriter)
+
+		var writer io.Writer = filteredFileWriter
+		if cfg.File.Pretty {
+			writer = zerolog.ConsoleWriter{
+				Out:        filteredFileWriter,
+				TimeFormat: time.RFC3339,
+				NoColor:    true,
+				FormatLevel: func(i interface{}) string {
+					return strings.ToUpper(fmt.Sprintf("| %s |", i))
+				},
+			}
+		}
+		writers = append(writers, writer)
 	}
 
 	// if console is enabled or there is no file writer, add console writer
@@ -54,11 +68,24 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 		if !ok {
 			level = zerolog.InfoLevel
 		}
+
 		filteredConsoleWriter := &zerolog.FilteredLevelWriter{
 			Writer: zerolog.LevelWriterAdapter{Writer: os.Stdout},
 			Level:  level,
 		}
-		writers = append(writers, filteredConsoleWriter)
+
+		var writer io.Writer = filteredConsoleWriter
+		if cfg.Console.Pretty {
+			writer = zerolog.ConsoleWriter{
+				Out:        filteredConsoleWriter,
+				TimeFormat: time.RFC3339,
+				NoColor:    true,
+				FormatLevel: func(i interface{}) string {
+					return strings.ToUpper(fmt.Sprintf("| %s |", i))
+				},
+			}
+		}
+		writers = append(writers, writer)
 	}
 
 	var log zerolog.Logger
