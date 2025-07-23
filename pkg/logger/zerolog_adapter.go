@@ -39,53 +39,58 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 			MaxAge:     cfg.File.MaxAge,
 			Compress:   cfg.File.Compress,
 		}
+		var writer io.Writer
+		if cfg.File.Pretty {
+			writer = zerolog.ConsoleWriter{
+				Out:        fileWriter,
+				TimeFormat: time.RFC3339,
+				NoColor:    true,
+				FormatLevel: func(i any) string {
+					return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
+				},
+			}
+		} else {
+			writer = fileWriter
+		}
+
 		level, ok := mapZerologLevel[strings.ToLower(cfg.File.Level)]
 		if !ok {
 			level = zerolog.InfoLevel
 		}
 		filteredFileWriter := &zerolog.FilteredLevelWriter{
-			Writer: zerolog.LevelWriterAdapter{Writer: fileWriter},
+			Writer: zerolog.LevelWriterAdapter{Writer: writer},
 			Level:  level,
 		}
 
-		var writer io.Writer = filteredFileWriter
-		if cfg.File.Pretty {
-			writer = zerolog.ConsoleWriter{
-				Out:        filteredFileWriter,
-				TimeFormat: time.RFC3339,
-				NoColor:    true,
-				FormatLevel: func(i interface{}) string {
-					return strings.ToUpper(fmt.Sprintf("| %s |", i))
-				},
-			}
-		}
-		writers = append(writers, writer)
+		writers = append(writers, filteredFileWriter)
 	}
 
 	// if console is enabled or there is no file writer, add console writer
 	if cfg.Console.Enabled || len(writers) == 0 {
+		var writer io.Writer
+		if cfg.Console.Pretty {
+			writer = zerolog.ConsoleWriter{
+				Out:        os.Stdout,
+				TimeFormat: time.RFC3339,
+				NoColor:    true,
+				FormatLevel: func(i any) string {
+					return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
+				},
+			}
+		} else {
+			writer = os.Stdout
+		}
+
 		level, ok := mapZerologLevel[strings.ToLower(cfg.Console.Level)]
 		if !ok {
 			level = zerolog.InfoLevel
 		}
 
 		filteredConsoleWriter := &zerolog.FilteredLevelWriter{
-			Writer: zerolog.LevelWriterAdapter{Writer: os.Stdout},
+			Writer: zerolog.LevelWriterAdapter{Writer: writer},
 			Level:  level,
 		}
-
-		var writer io.Writer = filteredConsoleWriter
-		if cfg.Console.Pretty {
-			writer = zerolog.ConsoleWriter{
-				Out:        filteredConsoleWriter,
-				TimeFormat: time.RFC3339,
-				NoColor:    true,
-				FormatLevel: func(i interface{}) string {
-					return strings.ToUpper(fmt.Sprintf("| %s |", i))
-				},
-			}
-		}
-		writers = append(writers, writer)
+		writers = append(writers, filteredConsoleWriter)
 	}
 
 	var log zerolog.Logger
