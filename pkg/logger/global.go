@@ -2,7 +2,7 @@ package logger
 
 import "context"
 
-var defaultLogger Logger = &nullAdapter{}
+var defaultLogger Logger = NewNullAdapter()
 
 func SetDefaultLogger(logger Logger) {
 	defaultLogger = logger
