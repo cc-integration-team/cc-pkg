@@ -1,7 +1,5 @@
 package logger
 
-import "context"
-
 // Logger defines the interface that all loggers must implement
 type Logger interface {
 	Debug(msg string)
@@ -14,5 +12,4 @@ type Logger interface {
 	Errorf(format string, v ...any)
 	Fatal(msg string)
 	Fatalf(format string, v ...any)
-	WithContext(ctx context.Context) Logger
 }

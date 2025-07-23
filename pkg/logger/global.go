@@ -1,8 +1,6 @@
 package logger
 
-import "context"
-
-var defaultLogger Logger = NewNullAdapter()
+var defaultLogger Logger = NewNulllogAdapter()
 
 func SetDefaultLogger(logger Logger) {
 	defaultLogger = logger
@@ -48,6 +46,3 @@ func Fatalf(format string, v ...any) {
 	defaultLogger.Fatalf(format, v...)
 }
 
-func WithContext(ctx context.Context) Logger {
-	return defaultLogger.WithContext(ctx)
-}

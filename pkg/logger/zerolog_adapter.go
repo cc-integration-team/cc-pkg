@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -23,10 +22,9 @@ var mapZerologLevel = map[string]zerolog.Level{
 
 type zerologAdapter struct {
 	log *zerolog.Logger
-	ctx context.Context
 }
 
-func NewZerologAdapter(cfg LoggerConfig) Logger {
+func NewZerologAdapter(cfg LoggerConfig) *zerologAdapter {
 	var writers []io.Writer
 
 	// if file is enabled, add file writer
@@ -104,45 +102,41 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 }
 
 func (l *zerologAdapter) Debug(msg string) {
-	l.log.Debug().Ctx(l.ctx).Msg(msg)
+	l.log.Debug().Msg(msg)
 }
 
 func (l *zerologAdapter) Debugf(format string, v ...any) {
-	l.log.Debug().Ctx(l.ctx).Msgf(format, v...)
+	l.log.Debug().Msgf(format, v...)
 }
 
 func (l *zerologAdapter) Info(msg string) {
-	l.log.Info().Ctx(l.ctx).Msg(msg)
+	l.log.Info().Msg(msg)
 }
 
 func (l *zerologAdapter) Infof(format string, v ...any) {
-	l.log.Info().Ctx(l.ctx).Msgf(format, v...)
+	l.log.Info().Msgf(format, v...)
 }
 
 func (l *zerologAdapter) Warn(msg string) {
-	l.log.Warn().Ctx(l.ctx).Msg(msg)
+	l.log.Warn().Msg(msg)
 }
 
 func (l *zerologAdapter) Warnf(format string, v ...any) {
-	l.log.Warn().Ctx(l.ctx).Msgf(format, v...)
+	l.log.Warn().Msgf(format, v...)
 }
 
 func (l *zerologAdapter) Error(msg string) {
-	l.log.Error().Ctx(l.ctx).Msg(msg)
+	l.log.Error().Msg(msg)
 }
 
 func (l *zerologAdapter) Errorf(format string, v ...any) {
-	l.log.Error().Ctx(l.ctx).Msgf(format, v...)
+	l.log.Error().Msgf(format, v...)
 }
 
 func (l *zerologAdapter) Fatal(msg string) {
-	l.log.Fatal().Ctx(l.ctx).Msg(msg)
+	l.log.Fatal().Msg(msg)
 }
 
 func (l *zerologAdapter) Fatalf(format string, v ...any) {
-	l.log.Fatal().Ctx(l.ctx).Msgf(format, v...)
-}
-
-func (l *zerologAdapter) WithContext(ctx context.Context) Logger {
-	return &zerologAdapter{log: l.log, ctx: ctx}
+	l.log.Fatal().Msgf(format, v...)
 }
