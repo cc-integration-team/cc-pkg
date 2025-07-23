@@ -1,4 +1,4 @@
-module github.com/cc-integration-team/cc-pkg
+module github.com/cc-integration-team/cc-pkg/v2
 
 go 1.24.0
 
