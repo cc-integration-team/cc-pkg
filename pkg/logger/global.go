@@ -46,3 +46,6 @@ func Fatalf(format string, v ...any) {
 	defaultLogger.Fatalf(format, v...)
 }
 
+func WithFields(fields Fields) Logger {
+	return defaultLogger.WithFields(fields)
+}

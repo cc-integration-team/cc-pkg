@@ -12,4 +12,7 @@ type Logger interface {
 	Errorf(format string, v ...any)
 	Fatal(msg string)
 	Fatalf(format string, v ...any)
+	WithFields(fields Fields) Logger
 }
+
+type Fields map[string]any

@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,10 +22,11 @@ var mapZerologLevel = map[string]zerolog.Level{
 }
 
 type zerologAdapter struct {
-	log *zerolog.Logger
+	log    *zerolog.Logger
+	fields Fields
 }
 
-func NewZerologAdapter(cfg LoggerConfig) *zerologAdapter {
+func NewZerologAdapter(cfg LoggerConfig) Logger {
 	var writers []io.Writer
 
 	// if file is enabled, add file writer
@@ -98,45 +100,70 @@ func NewZerologAdapter(cfg LoggerConfig) *zerologAdapter {
 		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Logger()
 	}
 
-	return &zerologAdapter{log: &log}
+	return &zerologAdapter{log: &log, fields: make(Fields)}
 }
 
 func (l *zerologAdapter) Debug(msg string) {
-	l.log.Debug().Msg(msg)
+	l.logMsg(l.log.Debug(), msg)
 }
 
 func (l *zerologAdapter) Debugf(format string, v ...any) {
-	l.log.Debug().Msgf(format, v...)
+	l.logMsgf(l.log.Debug(), format, v...)
 }
 
 func (l *zerologAdapter) Info(msg string) {
-	l.log.Info().Msg(msg)
+	l.logMsg(l.log.Info(), msg)
 }
 
 func (l *zerologAdapter) Infof(format string, v ...any) {
-	l.log.Info().Msgf(format, v...)
+	l.logMsgf(l.log.Info(), format, v...)
 }
 
 func (l *zerologAdapter) Warn(msg string) {
-	l.log.Warn().Msg(msg)
+	l.logMsg(l.log.Warn(), msg)
 }
 
 func (l *zerologAdapter) Warnf(format string, v ...any) {
-	l.log.Warn().Msgf(format, v...)
+	l.logMsgf(l.log.Warn(), format, v...)
 }
 
 func (l *zerologAdapter) Error(msg string) {
-	l.log.Error().Msg(msg)
+	l.logMsg(l.log.Error(), msg)
 }
 
 func (l *zerologAdapter) Errorf(format string, v ...any) {
-	l.log.Error().Msgf(format, v...)
+	l.logMsgf(l.log.Error(), format, v...)
 }
 
 func (l *zerologAdapter) Fatal(msg string) {
-	l.log.Fatal().Msg(msg)
+	l.logMsg(l.log.Fatal(), msg)
 }
 
 func (l *zerologAdapter) Fatalf(format string, v ...any) {
-	l.log.Fatal().Msgf(format, v...)
+	l.logMsgf(l.log.Fatal(), format, v...)
+}
+
+func (l *zerologAdapter) WithFields(fields Fields) Logger {
+	newFields := make(Fields)
+	maps.Copy(newFields, l.fields)
+	maps.Copy(newFields, fields)
+
+	return &zerologAdapter{
+		log:    l.log,
+		fields: newFields,
+	}
+}
+
+func (l *zerologAdapter) logMsg(e *zerolog.Event, msg string) {
+	for k, v := range l.fields {
+		e = e.Any(k, v)
+	}
+	e.Msg(msg)
+}
+
+func (l *zerologAdapter) logMsgf(e *zerolog.Event, format string, v ...any) {
+	for k, v := range l.fields {
+		e = e.Any(k, v)
+	}
+	e.Msgf(format, v...)
 }
