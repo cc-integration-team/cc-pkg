@@ -1,6 +1,6 @@
 package logger
 
-var defaultLogger Logger = newNullLogAdapter()
+var defaultLogger Logger = newSlogLogAdapter()
 
 func SetDefaultLogger(logger Logger) {
 	defaultLogger = logger

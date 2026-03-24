@@ -18,16 +18,16 @@ func TestContextKey(t *testing.T) {
 	}
 
 	// inject a custom logger
-	nullLogger := newNullLogAdapter()
+	slogAdapter := newSlogLogAdapter()
 	t.Logf("defaultLogger addr: %p", defaultLogger)
-	t.Logf("nullLogger addr: %p", nullLogger)
-	if nullLogger == defaultLogger {
+	t.Logf("slogAdapter addr: %p", slogAdapter)
+	if slogAdapter == defaultLogger {
 		t.Error("Expected different logger instances")
 	}
 
-	ctx = WithContext(ctx, nullLogger)
+	ctx = WithContext(ctx, slogAdapter)
 	logger1 := FromContext(ctx)
-	if logger1 != nullLogger {
+	if logger1 != slogAdapter {
 		t.Error("Expected injected logger, got different logger")
 	}
 	if logger1 == defaultLogger {
