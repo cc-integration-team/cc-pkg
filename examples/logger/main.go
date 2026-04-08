@@ -1,6 +1,10 @@
 package main
 
-import "github.com/cc-integration-team/cc-pkg/v2/pkg/logger"
+import (
+	"errors"
+
+	"github.com/cc-integration-team/cc-pkg/v2/pkg/logger"
+)
 
 func main() {
 	// l := logger.NewZerologAdapter(logger.LoggerConfig{
@@ -24,8 +28,10 @@ func main() {
 	// })
 	// reusedLogger.Debug("This is a debug message from reused logger")
 	// reusedLogger.Error("This is an error message from reused logger")
+	err := errors.New("e ")
 	logger.WithFields(logger.Fields{
 		"action": "test",
 		"module": "main",
+		"error":  err,
 	}).Info("This is an info message with fields")
 }

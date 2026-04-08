@@ -3,7 +3,6 @@ package logger
 import (
 	"fmt"
 	"io"
-	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,8 +21,7 @@ var mapZerologLevel = map[string]zerolog.Level{
 }
 
 type zerologAdapter struct {
-	log    *zerolog.Logger
-	fields Fields
+	log *zerolog.Logger
 }
 
 func NewZerologAdapter(cfg LoggerConfig) Logger {
@@ -100,70 +98,34 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Logger()
 	}
 
-	return &zerologAdapter{log: &log, fields: make(Fields)}
+	return &zerologAdapter{log: &log}
 }
 
 func (l *zerologAdapter) Debug(msg string) {
-	l.logMsg(l.log.Debug(), msg)
-}
-
-func (l *zerologAdapter) Debugf(format string, v ...any) {
-	l.logMsgf(l.log.Debug(), format, v...)
+	l.log.Debug().Msg(msg)
 }
 
 func (l *zerologAdapter) Info(msg string) {
-	l.logMsg(l.log.Info(), msg)
-}
-
-func (l *zerologAdapter) Infof(format string, v ...any) {
-	l.logMsgf(l.log.Info(), format, v...)
+	l.log.Info().Msg(msg)
 }
 
 func (l *zerologAdapter) Warn(msg string) {
-	l.logMsg(l.log.Warn(), msg)
-}
-
-func (l *zerologAdapter) Warnf(format string, v ...any) {
-	l.logMsgf(l.log.Warn(), format, v...)
+	l.log.Warn().Msg(msg)
 }
 
 func (l *zerologAdapter) Error(msg string) {
-	l.logMsg(l.log.Error(), msg)
-}
-
-func (l *zerologAdapter) Errorf(format string, v ...any) {
-	l.logMsgf(l.log.Error(), format, v...)
+	l.log.Error().Msg(msg)
 }
 
 func (l *zerologAdapter) Fatal(msg string) {
-	l.logMsg(l.log.Fatal(), msg)
-}
-
-func (l *zerologAdapter) Fatalf(format string, v ...any) {
-	l.logMsgf(l.log.Fatal(), format, v...)
+	l.log.Fatal().Msg(msg)
 }
 
 func (l *zerologAdapter) WithFields(fields Fields) Logger {
-	newFields := make(Fields)
-	maps.Copy(newFields, l.fields)
-	maps.Copy(newFields, fields)
-
-	return &zerologAdapter{
-		log:    l.log,
-		fields: newFields,
+	ctx := l.log.With()
+	for k, v := range fields {
+		ctx = ctx.Interface(k, v)
 	}
-}
-
-func (l *zerologAdapter) logMsg(e *zerolog.Event, msg string) {
-	for k, v := range l.fields {
-		e = e.Any(k, v)
-	}
-	e.Msg(msg)
-}
-
-func (l *zerologAdapter) logMsgf(e *zerolog.Event, format string, v ...any) {
-	for k, v := range l.fields {
-		e = e.Any(k, v)
-	}
-	e.Msgf(format, v...)
+	newLog := ctx.Logger()
+	return &zerologAdapter{log: &newLog}
 }
