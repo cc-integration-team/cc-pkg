@@ -1,6 +1,6 @@
-module github.com/cc-integration-team/cc-pkg/v2
+module github.com/cc-integration-team/cc-pkg/v3
 
-go 1.24.0
+go 1.26.0
 
 require (
 	github.com/redis/go-redis/v9 v9.9.0

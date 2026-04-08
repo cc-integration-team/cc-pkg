@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 
-	"github.com/cc-integration-team/cc-pkg/v2/pkg/logger"
+	"github.com/cc-integration-team/cc-pkg/v3/pkg/logger"
 )
 
 func main() {
