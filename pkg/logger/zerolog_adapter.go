@@ -93,7 +93,7 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 
 	var log zerolog.Logger
 	if cfg.CallerDebug {
-		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(4).Logger()
+		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(3).Logger()
 	} else {
 		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Logger()
 	}

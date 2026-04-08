@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"log/slog"
+	"os"
 )
 
 type slogLogAdapter struct {
@@ -36,7 +37,8 @@ func (l *slogLogAdapter) Error(msg string) {
 }
 
 func (l *slogLogAdapter) Fatal(msg string) {
-	l.slog.Error("unsupported log level: fatal")
+	l.slog.Error(msg)
+	os.Exit(1)
 }
 
 func (l *slogLogAdapter) WithFields(fields Fields) Logger {

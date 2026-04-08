@@ -28,6 +28,15 @@ func main() {
 	// })
 	// reusedLogger.Debug("This is a debug message from reused logger")
 	// reusedLogger.Error("This is an error message from reused logger")
+	logger.SetDefaultLogger(logger.NewZerologAdapter(logger.LoggerConfig{
+		CallerDebug: true,
+		File:        logger.LoggerFileConfig{},
+		Console: logger.LoggerConsoleConfig{
+			Level:   "debug",
+			Enabled: true,
+			Pretty:  true,
+		},
+	}))
 	err := errors.New("e ")
 	logger.WithFields(logger.Fields{
 		"action": "test",
