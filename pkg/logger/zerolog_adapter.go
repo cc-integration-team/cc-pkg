@@ -20,10 +20,6 @@ var mapZerologLevel = map[string]zerolog.Level{
 	"fatal": zerolog.FatalLevel,
 }
 
-type zerologAdapter struct {
-	log *zerolog.Logger
-}
-
 func NewZerologAdapter(cfg LoggerConfig) Logger {
 	var writers []io.Writer
 
@@ -39,14 +35,21 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 		}
 		var writer io.Writer
 		if cfg.File.Pretty {
-			writer = zerolog.ConsoleWriter{
-				Out:        fileWriter,
-				TimeFormat: time.RFC3339,
-				NoColor:    true,
+			cw := zerolog.ConsoleWriter{
+				Out:           fileWriter,
+				TimeFormat:    time.RFC3339,
+				NoColor:       true,
+				FieldsExclude: []string{"service"},
 				FormatLevel: func(i any) string {
 					return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 				},
 			}
+			if cfg.Service != "" {
+				cw.FormatMessage = func(i any) string {
+					return fmt.Sprintf("%s | %v", cfg.Service, i)
+				}
+			}
+			writer = cw
 		} else {
 			writer = fileWriter
 		}
@@ -67,14 +70,21 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 	if cfg.Console.Enabled || len(writers) == 0 {
 		var writer io.Writer
 		if cfg.Console.Pretty {
-			writer = zerolog.ConsoleWriter{
-				Out:        os.Stdout,
-				TimeFormat: time.RFC3339,
-				NoColor:    true,
+			cw := zerolog.ConsoleWriter{
+				Out:           os.Stdout,
+				TimeFormat:    time.RFC3339,
+				NoColor:       true,
+				FieldsExclude: []string{"service"},
 				FormatLevel: func(i any) string {
 					return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 				},
 			}
+			if cfg.Service != "" {
+				cw.FormatMessage = func(i any) string {
+					return fmt.Sprintf("%s | %v", cfg.Service, i)
+				}
+			}
+			writer = cw
 		} else {
 			writer = os.Stdout
 		}
@@ -92,13 +102,21 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 	}
 
 	var log zerolog.Logger
-	if cfg.CallerDebug {
-		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().CallerWithSkipFrameCount(3).Logger()
+	ctx := zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp()
+	if cfg.Service != "" {
+		ctx = ctx.Str("service", cfg.Service)
+	}
+	if cfg.Caller {
+		log = ctx.CallerWithSkipFrameCount(3).Logger()
 	} else {
-		log = zerolog.New(zerolog.MultiLevelWriter(writers...)).With().Timestamp().Logger()
+		log = ctx.Logger()
 	}
 
 	return &zerologAdapter{log: &log}
+}
+
+type zerologAdapter struct {
+	log *zerolog.Logger
 }
 
 func (l *zerologAdapter) Debug(msg string) {
@@ -119,6 +137,30 @@ func (l *zerologAdapter) Error(msg string) {
 
 func (l *zerologAdapter) Fatal(msg string) {
 	l.log.Fatal().Msg(msg)
+}
+
+func (l *zerologAdapter) Debugf(msg string, args ...any) {
+	l.log.Debug().Msgf(msg, args...)
+}
+
+// Errorf implements [Logger].
+func (l *zerologAdapter) Errorf(msg string, args ...any) {
+	l.log.Error().Msgf(msg, args...)
+}
+
+// Fatalf implements [Logger].
+func (l *zerologAdapter) Fatalf(msg string, args ...any) {
+	l.log.Fatal().Msgf(msg, args...)
+}
+
+// Infof implements [Logger].
+func (l *zerologAdapter) Infof(msg string, args ...any) {
+	l.log.Info().Msgf(msg, args...)
+}
+
+// Warnf implements [Logger].
+func (l *zerologAdapter) Warnf(msg string, args ...any) {
+	l.log.Warn().Msgf(msg, args...)
 }
 
 func (l *zerologAdapter) WithFields(fields Fields) Logger {

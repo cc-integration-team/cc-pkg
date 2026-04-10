@@ -1,46 +1,38 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/cc-integration-team/cc-pkg/v3/pkg/logger"
 )
 
 func main() {
-	// l := logger.NewZerologAdapter(logger.LoggerConfig{
-	// 	Console: logger.LoggerConsoleConfig{
-	// 		Level:   "debug",
-	// 		Pretty:  true,
-	// 		Enabled: true,
-	// 	},
-	// })
-
-	// logger.SetDefaultLogger(l)
-
-	// logger.WithFields(logger.Fields{
-	// 	"module": "main",
-	// 	"action": "test",
-	// }).Info("This is an info message with fields")
-
-	// reusedLogger := logger.WithFields(logger.Fields{
-	// 	"module": "main",
-	// 	"action": "reuse",
-	// })
-	// reusedLogger.Debug("This is a debug message from reused logger")
-	// reusedLogger.Error("This is an error message from reused logger")
 	logger.SetDefaultLogger(logger.NewZerologAdapter(logger.LoggerConfig{
-		CallerDebug: true,
-		File:        logger.LoggerFileConfig{},
+		Service: "ncxo-ah-media-adapter:v1.0.1",
+		File:    logger.LoggerFileConfig{},
+		Console: logger.LoggerConsoleConfig{
+			Level:   "debug",
+			Enabled: true,
+			Pretty:  false,
+		},
+	}))
+	logger.WithFields(logger.Fields{
+		"total": 300,
+	}).Info("example message")
+	logger.WithFields(logger.Fields{
+		"total": 100,
+	}).Debug("example message")
+	logger.SetDefaultLogger(logger.NewZerologAdapter(logger.LoggerConfig{
+		Service: "ncxo-ah-media-adapter:v1.0.1",
+		File:    logger.LoggerFileConfig{},
+		Caller:  true,
 		Console: logger.LoggerConsoleConfig{
 			Level:   "debug",
 			Enabled: true,
 			Pretty:  true,
 		},
 	}))
-	err := errors.New("e ")
 	logger.WithFields(logger.Fields{
-		"action": "test",
-		"module": "main",
-		"error":  err,
-	}).Info("This is an info message with fields")
+		"abs": 123,
+	}).WithFields(logger.Fields{
+		"123": 123,
+	}).Debug("example message")
 }
