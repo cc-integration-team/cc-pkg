@@ -166,7 +166,11 @@ func (l *zerologAdapter) Warnf(msg string, args ...any) {
 func (l *zerologAdapter) WithFields(fields Fields) Logger {
 	ctx := l.log.With()
 	for k, v := range fields {
-		ctx = ctx.Interface(k, v)
+		if err, ok := v.(error); ok {
+			ctx = ctx.AnErr(k, err)
+		} else {
+			ctx = ctx.Any(k, v)
+		}
 	}
 	newLog := ctx.Logger()
 	return &zerologAdapter{log: &newLog}
