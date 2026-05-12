@@ -58,12 +58,15 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 		if !ok {
 			level = zerolog.InfoLevel
 		}
-		filteredFileWriter := &zerolog.FilteredLevelWriter{
+		var fileLevelWriter zerolog.LevelWriter = &zerolog.FilteredLevelWriter{
 			Writer: zerolog.LevelWriterAdapter{Writer: writer},
 			Level:  level,
 		}
+		if cfg.Masking.Enabled {
+			fileLevelWriter = newMaskingLevelWriter(fileLevelWriter, cfg.Masking)
+		}
 
-		writers = append(writers, filteredFileWriter)
+		writers = append(writers, fileLevelWriter)
 	}
 
 	// if console is enabled or there is no file writer, add console writer
@@ -94,11 +97,14 @@ func NewZerologAdapter(cfg LoggerConfig) Logger {
 			level = zerolog.InfoLevel
 		}
 
-		filteredConsoleWriter := &zerolog.FilteredLevelWriter{
+		var consoleLevelWriter zerolog.LevelWriter = &zerolog.FilteredLevelWriter{
 			Writer: zerolog.LevelWriterAdapter{Writer: writer},
 			Level:  level,
 		}
-		writers = append(writers, filteredConsoleWriter)
+		if cfg.Masking.Enabled {
+			consoleLevelWriter = newMaskingLevelWriter(consoleLevelWriter, cfg.Masking)
+		}
+		writers = append(writers, consoleLevelWriter)
 	}
 
 	var log zerolog.Logger
