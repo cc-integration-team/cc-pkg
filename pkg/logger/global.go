@@ -1,9 +1,39 @@
 package logger
 
 var defaultLogger Logger = newSlogLogAdapter()
+var defaultMasker = &masker{}
 
 func SetDefaultLogger(logger Logger) {
 	defaultLogger = logger
+}
+
+// SetDefaultMasker initialises the package-level masker from cfg.
+// Call once at boot alongside SetDefaultLogger.
+func SetDefaultMasker(cfg MaskingConfig) {
+	defaultMasker = newMasker(cfg)
+}
+
+// Mask returns the masked form of s ("******XYZ").
+// Returns s unchanged when masking is disabled or s has 3 or fewer runes.
+func Mask(s string) string {
+	return defaultMasker.mask(s)
+}
+
+// MaskIf masks s only when condition is true, otherwise returns s as-is.
+func MaskIf(s string, condition bool) string {
+	return defaultMasker.maskIf(s, condition)
+}
+
+// MaskURLParams masks the specified query parameters in rawURL.
+// visibleSuffix controls how many trailing characters remain visible (0 = hide all → "***").
+// Returns rawURL unchanged when masking is disabled or no params are given.
+func MaskURLParams(rawURL string, visibleSuffix int, params ...string) string {
+	return defaultMasker.maskURLParams(rawURL, visibleSuffix, params...)
+}
+
+// IsMaskingEnabled reports whether the package-level masker is active.
+func IsMaskingEnabled() bool {
+	return defaultMasker.isEnabled()
 }
 
 func Debug(msg string) {

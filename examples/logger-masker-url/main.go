@@ -6,8 +6,8 @@ import (
 
 // client simulates an outbound HTTP client that dials a CTI endpoint.
 type client struct {
-	masker    *logger.Masker
-	direction string // "Callin" | "Callout"
+	direction     string // "Callin" | "Callout"
+	visibleSuffix int    // trailing chars to keep visible; 0 = hide all
 }
 
 func (c *client) paramsToMask() []string {
@@ -24,7 +24,7 @@ func (c *client) paramsToMask() []string {
 func (c *client) connect(rawURL string) {
 	logger.WithFields(logger.Fields{
 		"direction": c.direction,
-		"url":       c.masker.MaskURLParams(rawURL, c.paramsToMask()...),
+		"url":       logger.MaskURLParams(rawURL, c.visibleSuffix, c.paramsToMask()...),
 	}).Info("connecting to endpoint")
 }
 
@@ -40,39 +40,49 @@ func main() {
 		},
 		Masking: cfg,
 	}))
-
-	masker := logger.NewMasker(cfg)
-
-	// -------------------------------------------------------------------------
-	// Ví dụ 1: INBOUND call — mask "callerid" (số khách hàng gọi vào)
-	// -------------------------------------------------------------------------
-	logger.Info("--- MaskURLParams: INBOUND call ---")
-	inbound := &client{masker: masker, direction: "Callin"}
-	inbound.connect("https://cti.example.com/dial?callerid=0901234567&calledid=74501&callid=100")
-	// url logged: https://cti.example.com/dial?calledid=74501&callerid=***&callid=100
+	logger.SetDefaultMasker(cfg)
 
 	// -------------------------------------------------------------------------
-	// Ví dụ 2: OUTBOUND call — mask "calledid" (số khách hàng được gọi ra)
+	// Ví dụ 1: INBOUND — ẩn hoàn toàn callerid (visibleSuffix=0)
+	// "0901234567" → "***"
 	// -------------------------------------------------------------------------
-	logger.Info("--- MaskURLParams: OUTBOUND call ---")
-	outbound := &client{masker: masker, direction: "Callout"}
-	outbound.connect("https://cti.example.com/dial?callerid=74501&calledid=0987654321&callid=101")
-	// url logged: https://cti.example.com/dial?calledid=***&callerid=74501&callid=101
+	logger.Info("--- MaskURLParams: INBOUND, hide all ---")
+	(&client{direction: "Callin", visibleSuffix: 0}).connect(
+		"https://cti.example.com/dial?callerid=0901234567&calledid=74501&callid=100",
+	)
 
 	// -------------------------------------------------------------------------
-	// Ví dụ 3: Direction không xác định — không mask gì cả
+	// Ví dụ 2: INBOUND — hiện 2 ký tự cuối callerid (visibleSuffix=2)
+	// "0901234567" → "***67"
+	// -------------------------------------------------------------------------
+	logger.Info("--- MaskURLParams: INBOUND, show last 2 chars ---")
+	(&client{direction: "Callin", visibleSuffix: 2}).connect(
+		"https://cti.example.com/dial?callerid=0901234567&calledid=74501&callid=101",
+	)
+
+	// -------------------------------------------------------------------------
+	// Ví dụ 3: OUTBOUND — ẩn hoàn toàn calledid
+	// "0987654321" → "***"
+	// -------------------------------------------------------------------------
+	logger.Info("--- MaskURLParams: OUTBOUND, hide all ---")
+	(&client{direction: "Callout", visibleSuffix: 0}).connect(
+		"https://cti.example.com/dial?callerid=74501&calledid=0987654321&callid=102",
+	)
+
+	// -------------------------------------------------------------------------
+	// Ví dụ 4: Direction không xác định — không mask gì cả
 	// -------------------------------------------------------------------------
 	logger.Info("--- MaskURLParams: unknown direction ---")
-	unknown := &client{masker: masker, direction: "Unknown"}
-	unknown.connect("https://cti.example.com/dial?callerid=0901234567&calledid=0987654321&callid=102")
-	// url logged: nguyên vẹn (paramsToMask trả nil)
+	(&client{direction: "Unknown", visibleSuffix: 0}).connect(
+		"https://cti.example.com/dial?callerid=0901234567&calledid=0987654321&callid=103",
+	)
 
 	// -------------------------------------------------------------------------
-	// Ví dụ 4: Masking tắt — URL luôn nguyên vẹn dù params có giá trị
+	// Ví dụ 5: Masking tắt — URL luôn nguyên vẹn
 	// -------------------------------------------------------------------------
+	logger.SetDefaultMasker(logger.MaskingConfig{Enabled: false})
 	logger.Info("--- MaskURLParams: masking disabled ---")
-	disabledMasker := logger.NewMasker(logger.MaskingConfig{Enabled: false})
-	disabledClient := &client{masker: disabledMasker, direction: "Callin"}
-	disabledClient.connect("https://cti.example.com/dial?callerid=0901234567&calledid=74501&callid=103")
-	// url logged: nguyên vẹn vì masker.enabled = false
+	(&client{direction: "Callin", visibleSuffix: 2}).connect(
+		"https://cti.example.com/dial?callerid=0901234567&calledid=74501&callid=104",
+	)
 }
