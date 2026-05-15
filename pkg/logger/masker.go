@@ -1,5 +1,7 @@
 package logger
 
+import "net/url"
+
 // Masker provides explicit, condition-aware value masking for use at the call
 // site. It complements the automatic field-name masking done by MaskingWriter:
 //
@@ -40,6 +42,30 @@ func (m *Masker) MaskIf(s string, condition bool) string {
 		return s
 	}
 	return m.Mask(s)
+}
+
+// MaskURLParams returns rawURL with the specified query parameters replaced by "***".
+// Returns rawURL unchanged when masking is disabled, params is empty, or the URL cannot be parsed.
+//
+// Example:
+//
+//	"url": masker.MaskURLParams(rawURL, "callerid", "token")
+func (m *Masker) MaskURLParams(rawURL string, params ...string) string {
+	if !m.enabled || len(params) == 0 {
+		return rawURL
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	q := u.Query()
+	for _, p := range params {
+		if q.Has(p) {
+			q.Set(p, "***")
+		}
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 // IsEnabled reports whether masking is active.
